@@ -1,4 +1,3 @@
-// config/database.js
 const { Sequelize } = require('sequelize');
 const { DATABASE_PATH } = require('../constants/databaseConstants');
 

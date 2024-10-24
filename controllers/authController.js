@@ -1,5 +1,5 @@
-const bcrypt = require('bcrypt');
 const User = require('../models/User');
+const { generateToken, isValidPassword } = require('../utils/authUtils');
 
 // Register a new user
 exports.register = async (req, res) => {
@@ -16,6 +16,9 @@ exports.register = async (req, res) => {
     // Create a new user
     const newUser = await User.create({ username, name, email, password });
 
+    // Generate token
+    const token = generateToken(newUser.userId);
+
     res.status(201).json({
       message: 'User registered successfully!',
       user: {
@@ -24,6 +27,7 @@ exports.register = async (req, res) => {
         name: newUser.name,
         email: newUser.email,
       },
+      token, // Return the JWT token
     });
   } catch (error) {
     res.status(500).json({ message: 'Registration failed', error: error.message });
@@ -38,8 +42,11 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ where: { username } });
     if (!user) return res.status(404).json({ message: 'User not found.' });
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await isValidPassword(password, user.password); // Use the instance method to validate the password
     if (!isPasswordValid) return res.status(401).json({ message: 'Invalid password.' });
+
+    // Generate token
+    const token = generateToken(user.userId);
 
     res.status(200).json({
       message: 'Login successful!',
@@ -49,6 +56,7 @@ exports.login = async (req, res) => {
         name: user.name,
         email: user.email,
       },
+      token, // Return the JWT token
     });
   } catch (error) {
     res.status(500).json({ message: 'Login failed', error: error.message });
