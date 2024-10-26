@@ -1,10 +1,10 @@
-// models/User.js
 const bcrypt = require('bcrypt');
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
+const Role = require('./Role');
+const Organization = require('./Organization');
 const { hashPassword } = require('../utils/authUtils');
 
-// Define the User model
 const User = sequelize.define('User', {
   userId: {
     type: DataTypes.INTEGER,
@@ -32,6 +32,22 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  roleId: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: Role,
+      key: 'roleId',
+    },
+    allowNull: false,
+  },
+  organizationId: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: Organization,
+      key: 'orgId',
+    },
+    allowNull: true,
+  },
 }, {
   timestamps: true,
   hooks: {
@@ -45,5 +61,8 @@ const User = sequelize.define('User', {
     },
   },
 });
+
+User.belongsTo(Role, { foreignKey: 'roleId' });
+User.belongsTo(Organization, { foreignKey: 'organizationId' });
 
 module.exports = User;

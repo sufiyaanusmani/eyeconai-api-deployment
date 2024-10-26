@@ -10,6 +10,11 @@ exports.isValidPassword = async (plainPassword, hashedPassword) => {
   return bcrypt.compare(plainPassword, hashedPassword);
 };
 
-exports.generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '1h' });
+exports.generateToken = ({ userId, role, organizationId }) => {
+  const payload = { userId, role, organizationId }; // Create a payload with user info
+
+  // Sign the token with the payload, secret, and options
+  const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+  return token; // Return the generated token
 };
