@@ -1,15 +1,13 @@
-// scripts/seedAdmin.js
-const bcrypt = require('bcrypt');
+require('dotenv').config();
 const User = require('../models/User');
 const Role = require('../models/Role'); // Import the Role model
 
 const seedAdmin = async () => {
   const adminData = {
-    username: 'admin',
-    name: 'Sufiyaan Usmani',
-    email: 'k213195@nu.edu.pk',
-    password: 'admin', // Change this to something secure
-    // roleId will be determined based on the role name
+    username: process.env.EYECON_ADMIN_USERNAME,
+    name: process.env.EYECON_ADMIN_NAME,
+    email: process.env.EYECON_ADMIN_EMAIL,
+    password: process.env.EYECON_ADMIN_PASSWORD,
   };
 
   try {
