@@ -1,0 +1,12 @@
+services:
+  app:
+    build: .
+    container_name: express_app
+    ports:
+      - "3000:3000"  # Expose port 3000 for the Express app
+    volumes:
+      - .:/app       # Mount the current directory to /app in the container for live reloads
+      - /app/node_modules  # Prevents node_modules from being overwritten by the host
+    environment:
+      - NODE_ENV=development
+    command: npm run dev  # Use 'npm start' for production
