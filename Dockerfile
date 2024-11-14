@@ -1,5 +1,5 @@
-# Use the Node.js LTS image
-FROM node:20
+# Use the Node.js LTS image as the base
+FROM node:20 AS base
 
 # Set working directory
 WORKDIR /app
@@ -16,5 +16,13 @@ COPY . .
 # Expose the app's port
 EXPOSE 3000
 
-# Start the application
-CMD ["npm", "run", "dev"]
+# Define the development stage
+FROM base AS development
+ENV ENVIRONMENT=development
+
+# Define the production stage
+FROM base AS production
+ENV ENVIRONMENT=production
+
+# Reinstall dependencies in production mode to remove dev dependencies
+RUN npm ci --only=production

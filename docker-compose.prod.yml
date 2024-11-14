@@ -1,0 +1,9 @@
+services:
+  app:
+    build: .
+    container_name: eyeconai_backend_prod
+    ports:
+      - "3000:3000"  # Expose port 3000 for the Express app
+    environment:
+      - ENVIRONMENT=production
+    command: npm start  # Use 'npm start' for production

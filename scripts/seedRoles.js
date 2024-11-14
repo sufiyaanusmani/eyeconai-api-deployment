@@ -1,4 +1,3 @@
-require('dotenv').config(); 
 const sequelize = require('../config/database');
 const Role = require('../models/Role'); // Adjust the path as necessary
 

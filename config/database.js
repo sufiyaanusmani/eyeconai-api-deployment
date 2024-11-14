@@ -1,14 +1,36 @@
+require('dotenv').config();
 const { Sequelize } = require('sequelize');
 
-// Create a new instance of Sequelize for SQLite using the constant path
+const config = {
+  development: {
+    username: process.env.DB_USER_DEV,
+    password: process.env.DB_PASSWORD_DEV,
+    database: process.env.DB_NAME_DEV,
+    host: process.env.DB_HOST_DEV,
+    port: process.env.DB_PORT_DEV || 3306,
+    dialect: 'mysql', // or 'postgres', 'sqlite', etc., based on your DB
+  },
+  production: {
+    username: process.env.DB_USER_PROD,
+    password: process.env.DB_PASSWORD_PROD,
+    database: process.env.DB_NAME_PROD,
+    host: process.env.DB_HOST_PROD,
+    port: process.env.DB_PORT_PROD || 3306,
+    dialect: 'mysql', // Ensure this matches your database type
+  },
+};
+
+const env = process.env.ENVIRONMENT || 'development';
+const dbConfig = config[env];
+
 const sequelize = new Sequelize(
-  process.env.MYSQL_DB_NAME,
-  process.env.MYSQL_DB_USER,
-  process.env.MYSQL_DB_PASSWORD,
+  dbConfig.database,
+  dbConfig.username,
+  dbConfig.password,
   {
-    host: process.env.MYSQL_DB_HOST,
-    port: process.env.MYSQL_DB_PORT || 3306,
-    dialect: 'mysql',
+    host: dbConfig.host,
+    port: dbConfig.port,
+    dialect: dbConfig.dialect,
   }
 );
 
