@@ -1,10 +1,11 @@
 const sequelize = require('../config/database');
-const Role = require('../models/Role'); // Adjust the path as necessary
+const Role = require('../models/Role');
+const ROLES = require("../constants/roles");
 
 const roles = [
-  { name: 'Admin' },
-  { name: 'Organization Admin' },
-  { name: 'User' },
+  { name: ROLES.ADMIN },
+  { name: ROLES.ORGANIZATION_ADMIN },
+  { name: ROLES.USER },
 ];
 
 const seedRoles = async () => {
