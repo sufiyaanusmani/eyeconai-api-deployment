@@ -1,6 +1,5 @@
-const Organization = require('../models/Organization');
-const Role = require('../models/Role');
-const User = require('../models/User');
+const ROLES = require('../constants/roles');
+const { Organization, Role, User } = require('../models');
 
 exports.createOrganization = async (req, res) => {
   const { name } = req.body;
@@ -41,7 +40,7 @@ exports.createOrganizationAdmin = async (req, res) => {
       if (!organization) return res.status(400).json({ message: 'Invalid organization specified.' });
   
       // Get the role ID for "Organization Admin"
-      const role = await Role.findOne({ where: { name: 'Organization Admin' } });
+      const role = await Role.findOne({ where: { name: ROLES.ORGANIZATION_ADMIN } });
       if (!role) return res.status(400).json({ message: 'Role "Organization Admin" not found.' });
   
       // Create a new organization admin

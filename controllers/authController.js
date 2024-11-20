@@ -1,7 +1,6 @@
 const User = require('../models/User');
 const { generateToken, isValidPassword } = require('../utils/authUtils');
-const Role = require('../models/Role');
-const Organization = require('../models/Organization');
+const { Role, Organization } = require('../models');
 
 // Register a new user
 exports.register = async (req, res) => {

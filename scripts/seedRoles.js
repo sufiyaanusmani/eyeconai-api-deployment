@@ -1,6 +1,6 @@
 const sequelize = require('../config/database');
-const Role = require('../models/Role');
 const ROLES = require("../constants/roles");
+const { Role } = require('../models');
 
 const roles = [
   { name: ROLES.ADMIN },

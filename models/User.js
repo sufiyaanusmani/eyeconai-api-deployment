@@ -1,9 +1,8 @@
-const bcrypt = require('bcrypt');
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
+const { hashPassword } = require('../utils/authUtils');
 const Role = require('./Role');
 const Organization = require('./Organization');
-const { hashPassword } = require('../utils/authUtils');
 
 const User = sequelize.define('User', {
   userId: {
@@ -50,6 +49,7 @@ const User = sequelize.define('User', {
   },
 }, {
   timestamps: true,
+  tableName: "User",
   hooks: {
     beforeCreate: async (user) => {
       user.password = await hashPassword(user.password);
@@ -61,8 +61,5 @@ const User = sequelize.define('User', {
     },
   },
 });
-
-User.belongsTo(Role, { foreignKey: 'roleId' });
-User.belongsTo(Organization, { foreignKey: 'organizationId' });
 
 module.exports = User;

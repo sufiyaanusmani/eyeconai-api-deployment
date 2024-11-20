@@ -12,6 +12,8 @@ const Organization = sequelize.define('Organization', {
     allowNull: false,
   },
   // Add other relevant fields like address, contact, etc.
+}, {
+  tableName: "Organization",
 });
 
 module.exports = Organization;

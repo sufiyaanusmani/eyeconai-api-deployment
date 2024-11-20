@@ -1,6 +1,6 @@
 require("dotenv").config();
 const express = require("express");
-const sequelize = require("./config/database");
+const { sequelize } = require("./models");
 const cors = require("cors")
 
 const app = express();
@@ -13,6 +13,7 @@ app.use(express.json());
 // Prefix all routes with /api
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
+app.use("/api/organization", require("./routes/organizationRoutes"));
 
 // Sync the models with the database
 sequelize.sync().then(() => {

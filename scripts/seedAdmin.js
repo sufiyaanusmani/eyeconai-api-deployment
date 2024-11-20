@@ -1,6 +1,5 @@
 require('dotenv').config();
-const User = require('../models/User');
-const Role = require('../models/Role'); // Import the Role model
+const { User, Role } = require('../models');
 
 const seedAdmin = async () => {
   const adminData = {
