@@ -4,6 +4,7 @@ const Organization = require('./Organization'); // Import the Organization model
 const Camera = require('./Camera'); // Import the Camera model
 const Criticality = require('../constants/criticality'); // Import the criticality constants
 const Status = require('../constants/status'); // Import the status constants
+const DAYS_OF_WEEK = require('../constants/days');
 
 const Anomaly = sequelize.define('Anomaly', {
     anomalyId: {
@@ -17,7 +18,32 @@ const Anomaly = sequelize.define('Anomaly', {
     },
     criticality: {
         type: DataTypes.STRING, // Use enum values
+    },
+    startTime: {
+        type: DataTypes.TIME,
         allowNull: false,
+    },
+    endTime: {
+        type: DataTypes.TIME,
+        allowNull: false,
+    },
+    daysOfWeek: {
+        type: DataTypes.JSON,
+        allowNull: false,
+        validate: {
+            isValidDays(value) {
+                const days = JSON.parse(value);
+                if (!Array.isArray(days) || !days.every(day => DAYS_OF_WEEK.includes(day))) {
+                    throw new Error('Invalid days format');
+                }
+            }
+        },
+        get() {
+            return JSON.parse(this.getDataValue('daysOfWeek'));
+        },
+        set(value) {
+            this.setDataValue('daysOfWeek', JSON.stringify(value));
+        }
     },
     modelName: {
         type: DataTypes.STRING,

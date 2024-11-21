@@ -1,41 +1,62 @@
-const { Anomaly, Organization, Camera } = require('../models');
-const ROLES = require('../constants/roles');
+const { Anomaly, Camera } = require('../models');
+const DAYS_OF_WEEK = require('../constants/days');
 
 const addAnomaly = async (req, res) => {
     try {
         const organizationId = req.user.organizationId;
-        const { description, criticality, modelName, cameraId } = req.body;
+        const { 
+            description, 
+            criticality, 
+            modelName, 
+            cameraId,
+            startTime,
+            endTime,
+            daysOfWeek
+        } = req.body;
+
+        // Validate required fields
+        if (!description || !modelName || !cameraId || !startTime || !endTime || !daysOfWeek) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        // Validate daysOfWeek is an array
+        if (!Array.isArray(daysOfWeek)) {
+            return res.status(400).json({ error: 'daysOfWeek must be an array' });
+        }
+
+        // Validate days values
+        if (!daysOfWeek.every(day => DAYS_OF_WEEK.includes(day))) {
+            return res.status(400).json({ error: 'Invalid day values' });
+        }
 
         // Step 1: Validate camera ownership
         const camera = await Camera.findOne({
             where: {
                 cameraId,
-                organizationId, // Ensure the camera belongs to the organization in the token
+                organizationId,
             },
         });
 
         if (!camera) {
-            return res.status(403).json({
-                message: 'Camera not found or does not belong to your organization',
-            });
+            return res.status(404).json({ error: 'Camera not found or access denied' });
         }
 
-        // Step 2: Create the anomaly
+        // Create anomaly with all fields
         const anomaly = await Anomaly.create({
             description,
             criticality,
             modelName,
-            organizationId, // Add organization ID from token
             cameraId,
+            organizationId,
+            startTime,
+            endTime,
+            daysOfWeek
         });
 
-        res.status(201).json({
-            message: 'Anomaly created successfully',
-            anomaly,
-        });
+        return res.status(201).json(anomaly);
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: 'Error adding anomaly' });
+        console.error('Error adding anomaly:', error);
+        return res.status(500).json({ error: 'Failed to add anomaly' });
     }
 };
 
