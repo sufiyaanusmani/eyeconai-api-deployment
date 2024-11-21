@@ -20,7 +20,7 @@ const config = {
   },
 };
 
-const env = process.env.ENVIRONMENT || 'development';
+const env = process.env.NODE_ENV || 'development';
 const dbConfig = config[env];
 
 const sequelize = new Sequelize(

@@ -1,5 +1,5 @@
-# Use the Node.js LTS image as the base
-FROM node:20 AS base
+# Base image
+FROM node:18-alpine
 
 # Set working directory
 WORKDIR /app
@@ -7,22 +7,19 @@ WORKDIR /app
 # Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Use build argument for environment (default to development)
+ARG NODE_ENV=development
+ENV NODE_ENV=${NODE_ENV}
 
-# Copy the rest of the application code
+# Install dependencies based on the environment
+RUN npm install && \
+    if [ "$NODE_ENV" = "production" ]; then npm prune --production; fi
+
+# Copy application source code
 COPY . .
 
-# Expose the app's port
+# Expose the application port
 EXPOSE 3000
 
-# Define the development stage
-FROM base AS development
-ENV ENVIRONMENT=development
-
-# Define the production stage
-FROM base AS production
-ENV ENVIRONMENT=production
-
-# Reinstall dependencies in production mode to remove dev dependencies
-RUN npm ci --only=production
+# Default command for the container
+CMD ["node", "server.js"]
