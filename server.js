@@ -14,6 +14,7 @@ app.use(express.json());
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/organization", require("./routes/organizationRoutes"));
+app.use("/api/analytics", require("./routes/analyticsRoutes"));
 
 // Sync the models with the database
 sequelize.sync().then(() => {

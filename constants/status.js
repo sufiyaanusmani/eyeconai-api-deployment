@@ -1,6 +1,7 @@
 const STATUS = {
     ON: 'On',
-    OFF: 'OFF'
+    OFF: 'OFF',
+    NEW: 'NEW',
 };
 
 module.exports = STATUS;
