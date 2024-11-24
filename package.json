@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon server.js",
     "seed:admin": "node scripts/seedAdmin.js",
-    "seed:roles": "node scripts/seedRoles.js"
+    "seed:roles": "node scripts/seedRoles.js",
+    "populate": "node scripts/populateData.js"
   },
   "author": "Sufiyaan Usmani",
   "license": "ISC",

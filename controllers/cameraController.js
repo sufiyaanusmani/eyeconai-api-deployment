@@ -1,5 +1,6 @@
 const { Camera, Organization } = require('../models');
 const ROLES = require('../constants/roles');
+const STATUS = require('../constants/status');
 
 const addCamera = async (req, res) => {
     try {
@@ -117,4 +118,30 @@ const deleteCamera = async (req, res) => {
 };
 
 
-module.exports = { addCamera, getAllCameras, updateCamera, deleteCamera };
+// Get online cameras for the organization
+const getOnlineCameras = async (req, res) => {
+    try {
+        const organizationId = parseInt(req.params.orgId, 10);
+
+        // Authorization check
+        if (req.user.role !== ROLES.ORGANIZATION_ADMIN || req.user.organizationId !== parseInt(organizationId)) {
+            return res.status(403).json({ message: 'Unauthorized' });
+        }
+
+        // Fetch only online cameras
+        const cameras = await Camera.findAll({
+            where: { 
+                organizationId,
+                status: STATUS.ONLINE
+            },
+        });
+
+        return res.status(200).json({ cameras });
+    } catch (error) {
+        console.error('[ERROR] Error fetching online cameras:', error);
+        return res.status(500).json({ message: 'Error fetching online cameras' });
+    }
+};
+
+
+module.exports = { addCamera, getAllCameras, updateCamera, deleteCamera, getOnlineCameras };

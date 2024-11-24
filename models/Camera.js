@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 const Organization = require('./Organization');
+const STATUS = require('../constants/status');
 
 const Camera = sequelize.define('Camera', {
   cameraId: {
@@ -32,6 +33,11 @@ const Camera = sequelize.define('Camera', {
       key: 'orgId',
     },
   },
+  status: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: STATUS.ONLINE
+  }
 }, {
   timestamps: true, // Adds createdAt and updatedAt fields
   tableName: "Camera"
