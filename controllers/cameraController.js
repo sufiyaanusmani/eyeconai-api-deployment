@@ -1,6 +1,9 @@
 const { Camera, Organization } = require('../models');
 const ROLES = require('../constants/roles');
 const STATUS = require('../constants/status');
+const { Anomaly } = require('../models');
+const Criticality = require('../constants/criticality');
+
 
 const addCamera = async (req, res) => {
     try {
@@ -143,5 +146,53 @@ const getOnlineCameras = async (req, res) => {
     }
 };
 
+const getCameraAnomalyStats = async (req, res) => {
+    try {
+        const organizationId = parseInt(req.params.orgId, 10);
 
-module.exports = { addCamera, getAllCameras, updateCamera, deleteCamera, getOnlineCameras };
+        // Authorization check
+        if (req.user.role !== ROLES.ORGANIZATION_ADMIN || req.user.organizationId !== parseInt(organizationId)) {
+            return res.status(403).json({ message: 'Unauthorized' });
+        }
+
+        // Get all cameras
+        const cameras = await Camera.findAll({
+            where: { organizationId },
+            attributes: ['cameraId', 'location', 'cameraType', 'status']
+        });
+
+        // Get all anomalies for this organization
+        const anomalies = await Anomaly.findAll({
+            where: { organizationId },
+            attributes: ['anomalyId', 'criticality', 'cameraId']
+        });
+
+        // Calculate stats for each camera
+        const stats = cameras.map(camera => {
+            const cameraAnomalies = anomalies.filter(a => a.cameraId === camera.cameraId);
+            
+            const anomalyStats = {
+                total: cameraAnomalies.length,
+                moderate: cameraAnomalies.filter(a => a.criticality === Criticality.MODERATE).length,
+                critical: cameraAnomalies.filter(a => a.criticality === Criticality.CRITICAL).length,
+                catastrophic: cameraAnomalies.filter(a => a.criticality === Criticality.CATASTROPHIC).length
+            };
+
+            return {
+                cameraId: camera.cameraId,
+                location: camera.location,
+                cameraType: camera.cameraType,
+                status: camera.status,
+                anomalyStats
+            };
+        });
+
+        res.status(200).json({ stats });
+    } catch (error) {
+        console.error('[ERROR] Error fetching camera anomaly stats:', error);
+        res.status(500).json({ message: 'Error fetching camera anomaly statistics' });
+    }
+};
+
+
+module.exports = { addCamera, getAllCameras, updateCamera, deleteCamera, getOnlineCameras, getCameraAnomalyStats };
