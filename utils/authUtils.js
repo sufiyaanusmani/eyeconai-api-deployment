@@ -14,7 +14,7 @@ exports.generateToken = ({ userId, role, organizationId }) => {
   const payload = { userId, role, organizationId }; // Create a payload with user info
 
   // Sign the token with the payload, secret, and options
-  const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+  const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h' });
 
   return token; // Return the generated token
 };
