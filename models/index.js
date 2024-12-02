@@ -6,6 +6,7 @@ const User = require('./User');
 const Organization = require('./Organization');
 const Camera = require('./Camera');
 const Anomaly = require('./Anomaly');
+const AnomalyCamera = require('./AnomalyCamera');
 
 // Define associations after importing all models
 User.belongsTo(Role, { foreignKey: 'roleId' });
@@ -14,7 +15,8 @@ Organization.hasMany(Camera, { foreignKey: 'organizationId', onDelete: 'CASCADE'
 Camera.belongsTo(Organization, { foreignKey: 'organizationId' });
 Anomaly.belongsTo(Organization, { foreignKey: 'organizationId' });
 Organization.hasMany(Anomaly, { foreignKey: 'organizationId', onDelete: 'CASCADE' });
-Anomaly.belongsTo(Camera, { foreignKey: 'cameraId' });
+Anomaly.belongsToMany(Camera, { through: AnomalyCamera });
+Camera.belongsToMany(Anomaly, { through: AnomalyCamera });
 
 
-module.exports = { sequelize, User, Organization, Camera, Role, Anomaly };
+module.exports = { sequelize, User, Organization, Camera, Role, Anomaly, AnomalyCamera };

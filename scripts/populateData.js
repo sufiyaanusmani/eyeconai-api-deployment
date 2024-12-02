@@ -31,7 +31,7 @@ async function populateData() {
             }))
         );
 
-        // Insert organization admins with hashed passwords
+        // Insert organization admins
         const createdAdmins = await User.bulkCreate(adminsWithHashedPasswords, { transaction });
         console.log(`[SUCCESS] Created ${createdAdmins.length} organization admins`);
 
@@ -42,6 +42,24 @@ async function populateData() {
         // Insert anomalies
         const createdAnomalies = await Anomaly.bulkCreate(anomalies, { transaction });
         console.log(`[SUCCESS] Created ${createdAnomalies.length} anomalies`);
+
+        // Create anomaly-camera associations
+        for (const anomaly of anomalies) {
+            const createdAnomaly = createdAnomalies.find(a => 
+                a.description === anomaly.description && 
+                a.organizationId === anomaly.organizationId
+            );
+            
+            // If cameraIds is array, associate with multiple cameras
+            const camerasToAssociate = createdCameras.filter(camera => 
+                Array.isArray(anomaly.cameraIds) ? 
+                anomaly.cameraIds.includes(camera.cameraId) : 
+                camera.cameraId === anomaly.cameraId
+            );
+
+            await createdAnomaly.setCameras(camerasToAssociate, { transaction });
+        }
+        console.log('[SUCCESS] Created anomaly-camera associations');
 
         await transaction.commit();
         console.log('[SUCCESS] Data population completed successfully');

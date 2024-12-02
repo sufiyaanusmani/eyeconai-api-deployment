@@ -13,7 +13,7 @@ const anomalies = [
         modelName: "VLM",
         status: Status.ON,
         organizationId: 1,
-        cameraId: 1
+        cameraIds: [1]
     },
     {
         title: "After-hours Loitering",
@@ -25,7 +25,7 @@ const anomalies = [
         modelName: "VLM",
         status: Status.ON,
         organizationId: 1,
-        cameraId: 2
+        cameraIds: [2]
     },
     {
         title: "Unauthorized Entry",
@@ -37,7 +37,7 @@ const anomalies = [
         modelName: "VLM",
         status: Status.ON,
         organizationId: 1,
-        cameraId: 3
+        cameraIds: [3]
     },
     {
         title: "Crowd Gathering",
@@ -49,7 +49,7 @@ const anomalies = [
         modelName: "ConvLSTM",
         status: Status.ON,
         organizationId: 1,
-        cameraId: 4
+        cameraIds: [4]
     },
     {
         title: "Suspicious Behavior",
@@ -61,7 +61,7 @@ const anomalies = [
         modelName: "VLM",
         status: Status.ON,
         organizationId: 1,
-        cameraId: 5
+        cameraIds: [5]
     },
     {
         title: "Vehicle Detection",
@@ -73,7 +73,7 @@ const anomalies = [
         modelName: "ConvLSTM",
         status: Status.ON,
         organizationId: 1,
-        cameraId: 6
+        cameraIds: [6]
     },
     {
         title: "After-hours Access",
@@ -85,7 +85,7 @@ const anomalies = [
         modelName: "VLM",
         status: Status.ON,
         organizationId: 1,
-        cameraId: 7
+        cameraIds: [7]
     },
     {
         title: "Weekend Gymnasium Access",
@@ -97,7 +97,7 @@ const anomalies = [
         modelName: "ConvLSTM",
         status: Status.ON,
         organizationId: 1,
-        cameraId: 8
+        cameraIds: [8]
     },
     {
         title: "Laboratory Safety Protocol Violation",
@@ -109,7 +109,7 @@ const anomalies = [
         modelName: "VLM",
         status: Status.ON,
         organizationId: 1,
-        cameraId: 9
+        cameraIds: [9]
     },
     {
         title: "Main Entrance Tailgating",
@@ -121,7 +121,7 @@ const anomalies = [
         modelName: "ConvLSTM",
         status: Status.ON,
         organizationId: 1,
-        cameraId: 10
+        cameraIds: [10]
     }
 ];
 

@@ -67,14 +67,6 @@ const Anomaly = sequelize.define('Anomaly', {
             key: 'orgId',
         },
     },
-    cameraId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: Camera,
-            key: 'cameraId',
-        },
-    },
 }, {
     timestamps: true, // Adds createdAt and updatedAt fields
     tableName: "Anomaly"

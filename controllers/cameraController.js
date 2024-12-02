@@ -155,27 +155,23 @@ const getCameraAnomalyStats = async (req, res) => {
             return res.status(403).json({ message: 'Unauthorized' });
         }
 
-        // Get all cameras
+        // Get all cameras with their anomalies
         const cameras = await Camera.findAll({
             where: { organizationId },
-            attributes: ['cameraId', 'location', 'cameraType', 'status']
-        });
-
-        // Get all anomalies for this organization
-        const anomalies = await Anomaly.findAll({
-            where: { organizationId },
-            attributes: ['anomalyId', 'criticality', 'cameraId']
+            attributes: ['cameraId', 'location', 'cameraType', 'status'],
+            include: [{
+                model: Anomaly,
+                attributes: ['anomalyId', 'criticality']
+            }]
         });
 
         // Calculate stats for each camera
         const stats = cameras.map(camera => {
-            const cameraAnomalies = anomalies.filter(a => a.cameraId === camera.cameraId);
-            
             const anomalyStats = {
-                total: cameraAnomalies.length,
-                moderate: cameraAnomalies.filter(a => a.criticality === Criticality.MODERATE).length,
-                critical: cameraAnomalies.filter(a => a.criticality === Criticality.CRITICAL).length,
-                catastrophic: cameraAnomalies.filter(a => a.criticality === Criticality.CATASTROPHIC).length
+                total: camera.Anomalies.length,
+                moderate: camera.Anomalies.filter(a => a.criticality === Criticality.MODERATE).length,
+                critical: camera.Anomalies.filter(a => a.criticality === Criticality.CRITICAL).length,
+                catastrophic: camera.Anomalies.filter(a => a.criticality === Criticality.CATASTROPHIC).length
             };
 
             return {
