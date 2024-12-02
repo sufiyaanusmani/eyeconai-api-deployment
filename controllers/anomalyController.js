@@ -67,7 +67,7 @@ const getAllAnomalies = async (req, res) => {
         const anomalies = await Anomaly.findAll({
             where: { organizationId },
             include: [
-                { model: Camera, attributes: ['location', 'ipAddress', 'cameraType'] },
+                { model: Camera, attributes: ['cameraId', 'location', 'ipAddress', 'cameraType'] },
             ],
         });
 

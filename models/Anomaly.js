@@ -12,12 +12,17 @@ const Anomaly = sequelize.define('Anomaly', {
         autoIncrement: true,
         primaryKey: true,
     },
+    title: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
     description: {
         type: DataTypes.STRING,
         allowNull: false,
     },
     criticality: {
-        type: DataTypes.STRING, // Use enum values
+        type: DataTypes.STRING,
+        allowNull: false
     },
     startTime: {
         type: DataTypes.TIME,
