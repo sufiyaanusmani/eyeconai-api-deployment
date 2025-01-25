@@ -19,7 +19,7 @@ const seedAdmin = async () => {
     }
 
     // Check if the admin user already exists
-    const existingAdmin = await User.findOne({ where: { roleId: adminRole.roleId } });
+    const existingAdmin = await User.findOne({ where: { useername: adminData } });
     
     if (!existingAdmin) {
       // Create the admin user with the found role ID
