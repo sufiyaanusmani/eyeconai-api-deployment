@@ -17,9 +17,9 @@ const Camera = sequelize.define('Camera', {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true,
-    validate: {
-      isIP: true, // Ensures it's a valid IP address
-    },
+    // validate: {
+    //   isIP: true, // Ensures it's a valid IP address
+    // },
   },
   cameraType: {
     type: DataTypes.STRING,
