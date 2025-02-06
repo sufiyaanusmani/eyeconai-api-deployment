@@ -8,7 +8,7 @@ const Criticality = require('../constants/criticality');
 const addCamera = async (req, res) => {
     try {
         const organizationId = parseInt(req.params.orgId, 10);
-        const { location, ipAddress, cameraType } = req.body;
+        const { location, ipAddress, cameraType, cameraDescription } = req.body;
 
         // Check if the organization exists and the user is authorized
         const organization = await Organization.findByPk(organizationId);
@@ -27,6 +27,7 @@ const addCamera = async (req, res) => {
             ipAddress,
             cameraType,
             organizationId,
+            cameraDescription
         });
 
         return res.status(201).json({
@@ -66,7 +67,7 @@ const getAllCameras = async (req, res) => {
 const updateCamera = async (req, res) => {
     try {
         const { cameraId } = req.params;
-        const { location, ipAddress, cameraType } = req.body;
+        const { location, ipAddress, cameraType, cameraDescription } = req.body;
 
         // Find the camera
         const camera = await Camera.findByPk(cameraId);
@@ -83,6 +84,7 @@ const updateCamera = async (req, res) => {
         camera.location = location || camera.location;
         camera.ipAddress = ipAddress || camera.ipAddress;
         camera.cameraType = cameraType || camera.cameraType;
+        camera.cameraDescription = cameraDescription || camera.cameraDescription;
 
         await camera.save();
 
