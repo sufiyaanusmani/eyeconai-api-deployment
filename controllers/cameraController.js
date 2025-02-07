@@ -1,12 +1,17 @@
 const { Camera, Organization } = require('../models');
 const ROLES = require('../constants/roles');
 const STATUS = require('../constants/status');
-const { Anomaly } = require('../models');
+const { Anomaly, NormalCondition } = require('../models');
 const Criticality = require('../constants/criticality');
+const groqService = require('../services/GroqService');
+const { sequelize } = require("../models");
 
 
 const addCamera = async (req, res) => {
+    let transaction;
     try {
+        transaction = await sequelize.transaction();
+        
         const organizationId = parseInt(req.params.orgId, 10);
         const { location, ipAddress, cameraType, cameraDescription } = req.body;
 
@@ -28,14 +33,40 @@ const addCamera = async (req, res) => {
             cameraType,
             organizationId,
             cameraDescription
+        }, { transaction });
+
+        // Extract normal conditions using Groq if description is provided
+        if (cameraDescription) {
+            try {
+                const normalConditions = await groqService.extractNormalConditions(cameraDescription);
+                
+                // Create normal conditions for the camera
+                for (const condition of normalConditions) {
+                    await NormalCondition.create({
+                        ...condition,
+                        cameraId: newCamera.cameraId
+                    }, { transaction });
+                }
+            } catch (groqError) {
+                console.error('[ERROR] Failed to extract normal conditions:', groqError);
+                // Continue without normal conditions if extraction fails
+            }
+        }
+
+        await transaction.commit();
+
+        // Fetch camera with its normal conditions
+        const cameraWithConditions = await Camera.findByPk(newCamera.cameraId, {
+            include: [{ model: NormalCondition }]
         });
 
         return res.status(201).json({
             message: 'Camera added successfully!',
-            camera: newCamera,
+            camera: cameraWithConditions,
         });
     } catch (error) {
-        console.error(error);
+        if (transaction) await transaction.rollback();
+        console.error('[ERROR] Error adding camera:', error);
         return res.status(500).json({ message: 'Error adding camera' });
     }
 };
@@ -53,11 +84,15 @@ const getAllCameras = async (req, res) => {
 
         const cameras = await Camera.findAll({
             where: { organizationId },
+            include: [{
+                model: NormalCondition,
+                attributes: ['conditionId', 'description']
+            }]
         });
 
         return res.status(200).json({ cameras });
     } catch (error) {
-        console.error(error);
+        console.error('[ERROR] Error fetching cameras:', error);
         return res.status(500).json({ message: 'Error fetching cameras' });
     }
 };
