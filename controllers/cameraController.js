@@ -249,7 +249,7 @@ const getComprehensiveCameraData = async (req, res) => {
                 },
                 {
                     model: Anomaly,
-                    attributes: ['anomalyId', 'description'],
+                    attributes: ['anomalyId', 'description', 'criticality'],
                     through: { attributes: [] } // Exclude junction table attributes
                 }
             ]
