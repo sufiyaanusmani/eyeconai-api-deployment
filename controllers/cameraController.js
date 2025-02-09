@@ -241,7 +241,7 @@ const getComprehensiveCameraData = async (req, res) => {
         // Fetch cameras with both normal conditions and anomalies
         const cameras = await Camera.findAll({
             where: { organizationId },
-            attributes: ['cameraId', 'location', 'ipAddress', 'cameraType', 'status', 'cameraDescription'],
+            attributes: ['cameraId'],
             include: [
                 {
                     model: NormalCondition,
@@ -249,7 +249,7 @@ const getComprehensiveCameraData = async (req, res) => {
                 },
                 {
                     model: Anomaly,
-                    attributes: ['description'],
+                    attributes: ['anomalyId', 'description'],
                     through: { attributes: [] } // Exclude junction table attributes
                 }
             ]
