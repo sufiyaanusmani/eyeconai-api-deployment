@@ -228,4 +228,59 @@ const getCameraAnomalyStats = async (req, res) => {
 };
 
 
-module.exports = { addCamera, getAllCameras, updateCamera, deleteCamera, getOnlineCameras, getCameraAnomalyStats };
+// Get all camera ids, normal conditions, and anomalies for a given organization
+const getComprehensiveCameraData = async (req, res) => {
+    try {
+        const organizationId = parseInt(req.params.orgId, 10);
+
+        // Authorization check
+        if (req.user.role !== ROLES.ORGANIZATION_ADMIN || req.user.organizationId !== parseInt(organizationId)) {
+            return res.status(403).json({ message: 'Unauthorized' });
+        }
+
+        // Fetch cameras with both normal conditions and anomalies
+        const cameras = await Camera.findAll({
+            where: { organizationId },
+            attributes: ['cameraId', 'location', 'ipAddress', 'cameraType', 'status', 'cameraDescription'],
+            include: [
+                {
+                    model: NormalCondition,
+                    attributes: ['conditionId', 'description']
+                },
+                {
+                    model: Anomaly,
+                    attributes: [
+                        'anomalyId', 
+                        'title', 
+                        'description', 
+                        'criticality',
+                        'startTime',
+                        'endTime',
+                        'daysOfWeek',
+                        'modelName',
+                        'status'
+                    ],
+                    through: { attributes: [] } // Exclude junction table attributes
+                }
+            ]
+        });
+
+        // Format response
+        const formattedCameras = cameras.map(camera => ({
+            cameraId: camera.cameraId,
+            normalConditions: camera.NormalConditions,
+            anomalies: camera.Anomalies
+        }));
+
+        return res.status(200).json({
+            count: cameras.length,
+            cameras: formattedCameras
+        });
+    } catch (error) {
+        console.error('[ERROR] Error fetching camera details:', error);
+        return res.status(500).json({ message: 'Error fetching camera details' });
+    }
+};
+
+
+module.exports = { addCamera, getAllCameras, updateCamera, deleteCamera, getOnlineCameras, getCameraAnomalyStats, getComprehensiveCameraData };
