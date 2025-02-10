@@ -19,7 +19,7 @@ app.use("/api/analytics", require("./routes/analyticsRoutes"));
 // Sync the models with the database
 sequelize.sync().then(() => {
     console.log("[INFO] Database synced");
-    app.listen(process.env.PORT, () => {
+    app.listen(process.env.PORT || 3000, () => {
         console.log(`[INFO] Server running on port ${process.env.PORT}`);
     });
 });
