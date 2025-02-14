@@ -19,6 +19,6 @@
     "env": {
         "NODE_ENV": "production"
     },
-    "installCommand": "npm install mysql2 --save && npm install",
-    "buildCommand": "npm install mysql2 && npm run build"
+    "installCommand": "npm install",
+    "buildCommand": "npm run build"
 }
