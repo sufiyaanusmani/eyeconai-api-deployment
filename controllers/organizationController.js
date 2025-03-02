@@ -1,5 +1,5 @@
 const ROLES = require('../constants/roles');
-const { Organization, Role, User } = require('../models');
+const { Organization, Role, User, Camera } = require('../models');
 
 const createOrganization = async (req, res) => {
   const { name, maxCameras = 5 } = req.body;
@@ -114,8 +114,46 @@ const updateOrganization = async (req, res) => {
   }
 };
 
+const getOrganizationDetails = async (req, res) => {
+  try {
+    const organizationId = parseInt(req.params.orgId, 10);
+
+    // Ensure the user is authorized to view this organization
+    if (req.user.role === ROLES.ORGANIZATION_ADMIN && req.user.organizationId !== organizationId) {
+      return res.status(403).json({ message: 'You can only view your own organization' });
+    }
+
+    const organization = await Organization.findByPk(organizationId);
+
+    if (!organization) {
+      return res.status(404).json({ message: 'Organization not found' });
+    }
+
+    // Get camera count
+    const cameraCount = await Camera.count({ where: { organizationId } });
+
+    res.status(200).json({
+      organization: {
+        id: organization.orgId,
+        name: organization.name,
+        maxCameras: organization.maxCameras,
+        cameraCount: cameraCount,
+        usagePercentage: Math.round((cameraCount / organization.maxCameras) * 100)
+      }
+    });
+  } catch (error) {
+    console.error('[ERROR] Failed to get organization details:', error);
+    res.status(500).json({
+      message: 'Failed to get organization details',
+      error: error.message
+    });
+  }
+};
+
+// Add to exports
 module.exports = {
   createOrganization,
   createOrganizationAdmin,
-  updateOrganization
+  updateOrganization,
+  getOrganizationDetails // Add this
 };
