@@ -26,6 +26,17 @@ const addCamera = async (req, res) => {
             return res.status(403).json({ message: 'Unauthorized' });
         }
 
+        // Check if camera limit is reached
+        const cameraCount = await Camera.count({ where: { organizationId } });
+        if (cameraCount >= organization.maxCameras) {
+            await transaction.rollback();
+            return res.status(403).json({ 
+                message: 'Camera limit reached for this organization',
+                currentCount: cameraCount,
+                maxCameras: organization.maxCameras
+            });
+        }
+
         // Create the new camera
         const newCamera = await Camera.create({
             location,

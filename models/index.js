@@ -13,6 +13,7 @@ const NormalCondition = require('./NormalCondition');
 User.belongsTo(Role, { foreignKey: 'roleId' });
 User.belongsTo(Organization, { foreignKey: 'organizationId' });
 Organization.hasMany(Camera, { foreignKey: 'organizationId', onDelete: 'CASCADE' });
+Organization.hasMany(User, { foreignKey: 'organizationId' });
 Camera.belongsTo(Organization, { foreignKey: 'organizationId' });
 Anomaly.belongsTo(Organization, { foreignKey: 'organizationId' });
 Organization.hasMany(Anomaly, { foreignKey: 'organizationId', onDelete: 'CASCADE' });

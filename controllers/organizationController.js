@@ -2,19 +2,21 @@ const ROLES = require('../constants/roles');
 const { Organization, Role, User } = require('../models');
 
 const createOrganization = async (req, res) => {
-  const { name } = req.body;
+  const { name, maxCameras = 5 } = req.body;
 
   try {
     // Create a new organization
     const newOrganization = await Organization.create({
-      name
+      name,
+      maxCameras,
     });
 
     res.status(201).json({
       message: 'Organization created successfully!',
       organization: {
         id: newOrganization.orgId,
-        name: newOrganization.name
+        name: newOrganization.name,
+        maxCameras: newOrganization.maxCameras,
       },
     });
   } catch (error) {
@@ -69,7 +71,7 @@ const createOrganizationAdmin = async (req, res) => {
 
 const updateOrganization = async (req, res) => {
   const organizationId = parseInt(req.params.orgId, 10);
-  const { name } = req.body;
+  const { name, maxCameras } = req.body;
 
   try {
     // Validate request body
@@ -90,14 +92,17 @@ const updateOrganization = async (req, res) => {
     }
 
     // Update organization
-    organization.name = name;
+    organization.name = name || organization.name;
+    if (maxCameras !== undefined) organization.maxCameras = maxCameras;
     await organization.save();
+
 
     res.status(200).json({
       message: 'Organization updated successfully',
       organization: {
         id: organization.orgId,
-        name: organization.name
+        name: organization.name,
+        maxCameras: organization.maxCameras,
       }
     });
   } catch (error) {
