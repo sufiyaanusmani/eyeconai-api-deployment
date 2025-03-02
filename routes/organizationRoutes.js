@@ -3,10 +3,11 @@ const { authorizeRole } = require('../middlewares/authMiddleware');
 const { addCamera, getAllCameras, updateCamera, deleteCamera, getOnlineCameras, getCameraAnomalyStats, getComprehensiveCameraData } = require('../controllers/cameraController');
 const { addAnomaly, getAllAnomalies, updateAnomaly, deleteAnomaly } = require('../controllers/anomalyController');
 const ROLES = require("../constants/roles");
-const { updateOrganization } = require('../controllers/organizationController');
+const { updateOrganization, getOrganizationDetails } = require('../controllers/organizationController');
 
 const router = express.Router();
 
+router.get("/:orgId/details", authorizeRole(ROLES.ORGANIZATION_ADMIN), getOrganizationDetails);
 router.put("/:orgId", authorizeRole(ROLES.ORGANIZATION_ADMIN), updateOrganization);
 router.get("/:orgId/cameras", authorizeRole(ROLES.ORGANIZATION_ADMIN), getAllCameras);
 router.get("/:orgId/cameras/online", authorizeRole(ROLES.ORGANIZATION_ADMIN), getOnlineCameras);
