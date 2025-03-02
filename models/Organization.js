@@ -11,8 +11,16 @@ const Organization = sequelize.define('Organization', {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  // Add other relevant fields like address, contact, etc.
-}, {
+  maxCameras: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 5,
+    validate: {
+      min: 0
+    }
+  },
+    // Add other relevant fields like address, contact, etc.
+  }, {
   tableName: "Organization",
 });
 
