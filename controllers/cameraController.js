@@ -140,26 +140,27 @@ const updateCamera = async (req, res) => {
 
         await camera.save({ transaction });
 
-        // If normal conditions are provided, update them
+        // If normal conditions are provided, update their descriptions
         if (normalConditions && Array.isArray(normalConditions)) {
-            // Delete existing normal conditions
-            await NormalCondition.destroy({
-                where: { cameraId: camera.cameraId },
-                transaction
-            });
-
-            // Create new normal conditions
             for (const condition of normalConditions) {
-                await NormalCondition.create({
-                    description: condition.description,
-                    cameraId: camera.cameraId
-                }, { transaction });
+                if (condition.conditionId) {
+                    await NormalCondition.update(
+                        { description: condition.description },
+                        { 
+                            where: { 
+                                conditionId: condition.conditionId,
+                                cameraId: camera.cameraId 
+                            },
+                            transaction 
+                        }
+                    );
+                }
             }
         }
 
         await transaction.commit();
 
-        // Fetch updated camera with new normal conditions
+        // Fetch updated camera with normal conditions
         const updatedCamera = await Camera.findByPk(cameraId, {
             include: [{ model: NormalCondition }]
         });
