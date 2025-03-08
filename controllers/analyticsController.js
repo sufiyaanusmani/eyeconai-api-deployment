@@ -107,9 +107,78 @@ const getAnomaliesStats = async (req, res) => {
     }
 };
 
+const getDailyAnomalyCounts = async (req, res) => {
+    try {
+        const organizationId = req.user.organizationId;
+        const { startDate, endDate } = req.query;
+
+        const dailyCounts = new Map();
+        const orgRef = collection(db, `organizations/${organizationId}/cameras`);
+        const camerasSnapshot = await getDocs(orgRef);
+
+        for (const cameraDoc of camerasSnapshot.docs) {
+            const cameraId = cameraDoc.id;
+            const logsRef = collection(db, `organizations/${organizationId}/cameras/${cameraId}/logs`);
+            const logsSnapshot = await getDocs(logsRef);
+
+            logsSnapshot.docs.forEach(doc => {
+                const data = doc.data();
+                // Convert timestamp string to date
+                const date = new Date(parseFloat(data.timestamp) * 1000).toISOString().split('T')[0];
+                
+                if (!dailyCounts.has(date)) {
+                    dailyCounts.set(date, {
+                        date,
+                        moderate: 0,
+                        critical: 0,
+                        catastrophic: 0
+                    });
+                }
+
+                const counts = dailyCounts.get(date);
+                // Match exact case of criticality from Firestore
+                switch(data.criticality) {
+                    case 'Moderate':
+                        counts.moderate++;
+                        break;
+                    case 'Critical':
+                        counts.critical++;
+                        break;
+                    case 'Catastrophic':
+                        counts.catastrophic++;
+                        break;
+                }
+            });
+        }
+
+        // Filter by date range if provided
+        let result = Array.from(dailyCounts.values());
+        
+        if (startDate && endDate) {
+            result = result.filter(item => 
+                item.date >= startDate && 
+                item.date <= endDate
+            );
+        }
+
+        // Sort by date
+        result.sort((a, b) => a.date.localeCompare(b.date));
+
+        res.status(200).json({
+            totalDays: result.length,
+            data: result
+        });
+
+    } catch (error) {
+        console.error('[ERROR] Failed to fetch daily anomaly counts:', error);
+        res.status(500).json({ error: 'Failed to fetch anomaly statistics' });
+    }
+};
+
 module.exports = {
     getAnomalyAlerts,
     createAnomalyAlert,
     updateAnomalyAlert,
     getAnomaliesStats,
+    getDailyAnomalyCounts
 };
