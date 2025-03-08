@@ -175,10 +175,80 @@ const getDailyAnomalyCounts = async (req, res) => {
     }
 };
 
+const getCameraAnomalyCountsForToday = async (req, res) => {
+    try {
+        const organizationId = req.user.organizationId;
+        
+        // Get all cameras for the organization
+        const orgRef = collection(db, `organizations/${organizationId}/cameras`);
+        const camerasSnapshot = await getDocs(orgRef);
+        
+        // Get today's date at midnight for comparison
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayTimestamp = today.getTime() / 1000; // Convert to Unix timestamp
+
+        const cameraStats = [];
+
+        // Process each camera
+        for (const cameraDoc of camerasSnapshot.docs) {
+            const cameraId = cameraDoc.id;
+            const logsRef = collection(db, `organizations/${organizationId}/cameras/${cameraId}/logs`);
+            const logsSnapshot = await getDocs(logsRef);
+
+            let cameraCount = {
+                cameraId: parseInt(cameraId),
+                moderate: 0,
+                critical: 0,
+                catastrophic: 0,
+                total: 0
+            };
+
+            // Count anomalies for this camera
+            logsSnapshot.docs.forEach(doc => {
+                const data = doc.data();
+                const anomalyTimestamp = parseFloat(data.timestamp);
+                
+                // Check if anomaly is from today
+                if (anomalyTimestamp >= todayTimestamp) {
+                    switch(data.criticality) {
+                        case 'Moderate':
+                            cameraCount.moderate++;
+                            break;
+                        case 'Critical':
+                            cameraCount.critical++;
+                            break;
+                        case 'Catastrophic':
+                            cameraCount.catastrophic++;
+                            break;
+                    }
+                    cameraCount.total++;
+                }
+            });
+
+            cameraStats.push(cameraCount);
+        }
+
+        // Sort by total count descending
+        cameraStats.sort((a, b) => b.total - a.total);
+
+        res.status(200).json({
+            date: today.toISOString().split('T')[0],
+            totalCameras: cameraStats.length,
+            cameraCounts: cameraStats
+        });
+
+    } catch (error) {
+        console.error('[ERROR] Failed to fetch camera anomaly counts:', error);
+        res.status(500).json({ error: 'Failed to fetch camera statistics' });
+    }
+};
+
 module.exports = {
     getAnomalyAlerts,
     createAnomalyAlert,
     updateAnomalyAlert,
     getAnomaliesStats,
-    getDailyAnomalyCounts
+    getDailyAnomalyCounts,
+    getCameraAnomalyCountsForToday
 };
