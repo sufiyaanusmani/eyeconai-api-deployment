@@ -111,17 +111,23 @@ const getAllCameras = async (req, res) => {
 
 // Update a camera
 const updateCamera = async (req, res) => {
+    let transaction;
     try {
+        transaction = await sequelize.transaction();
+        
         const { cameraId } = req.params;
-        const { location, ipAddress, cameraType, cameraDescription } = req.body;
+        const { location, ipAddress, cameraType, cameraDescription, normalConditions } = req.body;
 
-        // Find the camera
-        const camera = await Camera.findByPk(cameraId);
+        // Find the camera with its current normal conditions
+        const camera = await Camera.findByPk(cameraId, {
+            include: [{ model: NormalCondition }]
+        });
+
         if (!camera) {
             return res.status(404).json({ message: 'Camera not found' });
         }
 
-        // Ensure the current user is the Organization Admin for the camera's organization
+        // Authorization check
         if (req.user.role !== ROLES.ORGANIZATION_ADMIN || req.user.organizationId !== camera.organizationId) {
             return res.status(403).json({ message: 'Unauthorized' });
         }
@@ -132,11 +138,39 @@ const updateCamera = async (req, res) => {
         camera.cameraType = cameraType || camera.cameraType;
         camera.cameraDescription = cameraDescription || camera.cameraDescription;
 
-        await camera.save();
+        await camera.save({ transaction });
 
-        return res.status(200).json({ message: 'Camera updated successfully!', camera });
+        // If normal conditions are provided, update them
+        if (normalConditions && Array.isArray(normalConditions)) {
+            // Delete existing normal conditions
+            await NormalCondition.destroy({
+                where: { cameraId: camera.cameraId },
+                transaction
+            });
+
+            // Create new normal conditions
+            for (const condition of normalConditions) {
+                await NormalCondition.create({
+                    description: condition.description,
+                    cameraId: camera.cameraId
+                }, { transaction });
+            }
+        }
+
+        await transaction.commit();
+
+        // Fetch updated camera with new normal conditions
+        const updatedCamera = await Camera.findByPk(cameraId, {
+            include: [{ model: NormalCondition }]
+        });
+
+        return res.status(200).json({
+            message: 'Camera updated successfully!',
+            camera: updatedCamera
+        });
     } catch (error) {
-        console.error(error);
+        if (transaction) await transaction.rollback();
+        console.error('[ERROR] Error updating camera:', error);
         return res.status(500).json({ message: 'Error updating camera' });
     }
 };
