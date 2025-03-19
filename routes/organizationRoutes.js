@@ -1,6 +1,6 @@
 const express = require('express');
 const { authorizeRole } = require('../middlewares/authMiddleware');
-const { addCamera, getAllCameras, updateCamera, deleteCamera, getOnlineCameras, getCameraAnomalyStats, getComprehensiveCameraData, getOrganizationNormalConditions } = require('../controllers/cameraController');
+const { addCamera, getAllCameras, updateCamera, deleteCamera, getOnlineCameras, getCameraAnomalyStats, getComprehensiveCameraData, getOrganizationNormalConditions, getCamerasWithAnomalies } = require('../controllers/cameraController');
 const { addAnomaly, getAllAnomalies, updateAnomaly, deleteAnomaly } = require('../controllers/anomalyController');
 const ROLES = require("../constants/roles");
 const { updateOrganization, getOrganizationDetails } = require('../controllers/organizationController');
@@ -16,6 +16,7 @@ router.put("/:orgId/camera/:cameraId", authorizeRole(ROLES.ORGANIZATION_ADMIN), 
 router.delete("/:orgId/camera/:cameraId", authorizeRole(ROLES.ORGANIZATION_ADMIN), deleteCamera);
 router.get("/:orgId/camera/anomaly-stats", authorizeRole(ROLES.ORGANIZATION_ADMIN), getCameraAnomalyStats);
 router.get("/:orgId/cameras/comprehensive", authorizeRole(ROLES.ORGANIZATION_ADMIN), getComprehensiveCameraData);
+router.get("/:orgId/cameras/anomalies", authorizeRole(ROLES.ORGANIZATION_ADMIN), getCamerasWithAnomalies);
 
 router.get("/:orgId/anomalies", authorizeRole(ROLES.ORGANIZATION_ADMIN), getAllAnomalies);
 router.post("/:orgId/anomaly", authorizeRole(ROLES.ORGANIZATION_ADMIN), addAnomaly);

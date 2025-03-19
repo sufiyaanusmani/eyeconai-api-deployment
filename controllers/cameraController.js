@@ -352,16 +352,80 @@ const getOrganizationNormalConditions = async (req, res) => {
             }))
         }));
 
-        // Calculate total normal conditions across all cameras
-        const totalConditions = result.reduce(
-            (sum, camera) => sum + camera.normalConditions.length, 
-            0
-        );
-
         return res.status(200).json(result);
     } catch (error) {
         console.error('[ERROR] Error fetching normal conditions:', error);
         return res.status(500).json({ message: 'Error fetching normal conditions' });
+    }
+};
+
+// Get all cameras with their assigned anomalies
+const getCamerasWithAnomalies = async (req, res) => {
+    try {
+        const organizationId = parseInt(req.params.orgId, 10);
+
+        // Authorization check
+        if (req.user.role !== ROLES.ORGANIZATION_ADMIN || req.user.organizationId !== parseInt(organizationId)) {
+            return res.status(403).json({ message: 'Unauthorized' });
+        }
+
+        // Fetch cameras with anomalies and include relevant details
+        const cameras = await Camera.findAll({
+            where: { organizationId },
+            attributes: ['cameraId', 'location', 'ipAddress', 'cameraType', 'status', 'cameraDescription'],
+            include: [{
+                model: Anomaly,
+                attributes: [
+                    'anomalyId', 
+                    'title', 
+                    'description', 
+                    'criticality', 
+                    'startTime',
+                    'endTime',
+                    'daysOfWeek',
+                    'modelName',
+                    'status'
+                ],
+                through: { attributes: [] } // Exclude junction table attributes
+            }]
+        });
+
+        // Format the response
+        const formattedCameras = cameras.map(camera => {
+            // Group anomalies by criticality
+            const criticalityGroups = {
+                [Criticality.MODERATE]: [],
+                [Criticality.CRITICAL]: [],
+                [Criticality.CATASTROPHIC]: []
+            };
+            
+            camera.Anomalies.forEach(anomaly => {
+                criticalityGroups[anomaly.criticality].push({
+                    anomalyId: anomaly.anomalyId,
+                    title: anomaly.title,
+                    description: anomaly.description,
+                    timeRange: `${anomaly.startTime} - ${anomaly.endTime}`,
+                    daysOfWeek: anomaly.daysOfWeek,
+                    modelName: anomaly.modelName,
+                    status: anomaly.status
+                });
+            });
+
+            return {
+                cameraId: camera.cameraId,
+                location: camera.location,
+                ipAddress: camera.ipAddress,
+                cameraType: camera.cameraType,
+                status: camera.status,
+                description: camera.cameraDescription,
+                anomalies: camera.Anomalies
+            };
+        });
+        
+        return res.status(200).json(formattedCameras);
+    } catch (error) {
+        console.error('[ERROR] Error fetching cameras with anomalies:', error);
+        return res.status(500).json({ message: 'Error fetching cameras with anomalies' });
     }
 };
 
@@ -374,5 +438,6 @@ module.exports = {
     getOnlineCameras, 
     getCameraAnomalyStats, 
     getComprehensiveCameraData,
-    getOrganizationNormalConditions
+    getOrganizationNormalConditions,
+    getCamerasWithAnomalies,
 };
