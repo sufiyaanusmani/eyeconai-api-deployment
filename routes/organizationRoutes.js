@@ -1,6 +1,6 @@
 const express = require('express');
 const { authorizeRole } = require('../middlewares/authMiddleware');
-const { addCamera, getAllCameras, updateCamera, deleteCamera, getOnlineCameras, getCameraAnomalyStats, getComprehensiveCameraData } = require('../controllers/cameraController');
+const { addCamera, getAllCameras, updateCamera, deleteCamera, getOnlineCameras, getCameraAnomalyStats, getComprehensiveCameraData, getOrganizationNormalConditions } = require('../controllers/cameraController');
 const { addAnomaly, getAllAnomalies, updateAnomaly, deleteAnomaly } = require('../controllers/anomalyController');
 const ROLES = require("../constants/roles");
 const { updateOrganization, getOrganizationDetails } = require('../controllers/organizationController');
@@ -21,5 +21,7 @@ router.get("/:orgId/anomalies", authorizeRole(ROLES.ORGANIZATION_ADMIN), getAllA
 router.post("/:orgId/anomaly", authorizeRole(ROLES.ORGANIZATION_ADMIN), addAnomaly);
 router.put("/:orgId/anomaly/:anomalyId", authorizeRole(ROLES.ORGANIZATION_ADMIN), updateAnomaly);
 router.delete("/:orgId/anomaly/:anomalyId", authorizeRole(ROLES.ORGANIZATION_ADMIN), deleteAnomaly);
+
+router.get("/:orgId/normal-conditions", authorizeRole(ROLES.ORGANIZATION_ADMIN), getOrganizationNormalConditions);
 
 module.exports = router;

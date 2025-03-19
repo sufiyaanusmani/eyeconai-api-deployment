@@ -319,4 +319,60 @@ const getComprehensiveCameraData = async (req, res) => {
 };
 
 
-module.exports = { addCamera, getAllCameras, updateCamera, deleteCamera, getOnlineCameras, getCameraAnomalyStats, getComprehensiveCameraData };
+// Get all normal conditions across cameras for an organization
+const getOrganizationNormalConditions = async (req, res) => {
+    try {
+        const organizationId = parseInt(req.params.orgId, 10);
+
+        // Authorization check
+        if (req.user.role !== ROLES.ORGANIZATION_ADMIN || req.user.organizationId !== parseInt(organizationId)) {
+            return res.status(403).json({ message: 'Unauthorized' });
+        }
+
+        // Get all cameras with their normal conditions
+        const cameras = await Camera.findAll({
+            where: { organizationId },
+            attributes: ['cameraId', 'location', 'ipAddress', 'cameraType', 'status'],
+            include: [{
+                model: NormalCondition,
+                attributes: ['conditionId', 'description']
+            }]
+        });
+
+        // Transform data for easier frontend consumption
+        const result = cameras.map(camera => ({
+            cameraId: camera.cameraId,
+            location: camera.location,
+            ipAddress: camera.ipAddress,
+            cameraType: camera.cameraType,
+            status: camera.status,
+            normalConditions: camera.NormalConditions.map(condition => ({
+                conditionId: condition.conditionId,
+                description: condition.description
+            }))
+        }));
+
+        // Calculate total normal conditions across all cameras
+        const totalConditions = result.reduce(
+            (sum, camera) => sum + camera.normalConditions.length, 
+            0
+        );
+
+        return res.status(200).json(result);
+    } catch (error) {
+        console.error('[ERROR] Error fetching normal conditions:', error);
+        return res.status(500).json({ message: 'Error fetching normal conditions' });
+    }
+};
+
+// Add to module exports
+module.exports = { 
+    addCamera, 
+    getAllCameras, 
+    updateCamera, 
+    deleteCamera, 
+    getOnlineCameras, 
+    getCameraAnomalyStats, 
+    getComprehensiveCameraData,
+    getOrganizationNormalConditions
+};
