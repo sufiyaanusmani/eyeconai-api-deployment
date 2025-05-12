@@ -15,6 +15,7 @@ app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/organization", require("./routes/organizationRoutes"));
 app.use("/api/analytics", require("./routes/analyticsRoutes"));
+app.use("/api/public", require("./routes/publicRoutes")); // Public routes without authentication
 
 // Initialize database connection
 const initializeDb = async () => {
