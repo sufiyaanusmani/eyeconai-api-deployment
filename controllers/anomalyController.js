@@ -1,4 +1,4 @@
-const { Anomaly, Camera } = require('../models');
+const { Anomaly, Camera, NormalCondition } = require('../models');
 const DAYS_OF_WEEK = require('../constants/days');
 const { Op } = require('sequelize');
 
@@ -85,7 +85,13 @@ const getAllAnomalies = async (req, res) => {
             include: [
                 { 
                     model: Camera,
-                    attributes: ['cameraId', 'location', 'ipAddress', 'cameraType'] 
+                    attributes: ['cameraId', 'location', 'ipAddress', 'cameraType'],
+                    include: [
+                        {
+                            model: NormalCondition,
+                            attributes: ['conditionId', 'description']
+                        }
+                    ]
                 }
             ]
         });
