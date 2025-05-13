@@ -160,7 +160,7 @@ const getAllAnomalies = async (req, res) => {
 
 const updateAnomaly = async (req, res) => {
     const { anomalyId } = req.params;
-    const { title, description, criticality, modelName, status, cameraIds } = req.body;
+    const { title, description, criticality, modelName, status, cameraIds, startTime, endTime, daysOfWeek } = req.body;
     const organizationId = req.user.organizationId;
 
     try {
@@ -170,6 +170,19 @@ const updateAnomaly = async (req, res) => {
 
         if (!anomaly) {
             return res.status(404).json({ message: 'Anomaly not found or does not belong to your organization' });
+        }
+
+        // If daysOfWeek is being updated, validate the values
+        if (daysOfWeek) {
+            // Validate daysOfWeek is an array
+            if (!Array.isArray(daysOfWeek)) {
+                return res.status(400).json({ error: 'daysOfWeek must be an array' });
+            }
+
+            // Validate days values
+            if (!daysOfWeek.every(day => DAYS_OF_WEEK.includes(day))) {
+                return res.status(400).json({ error: 'Invalid day values' });
+            }
         }
 
         // If cameraIds is being updated, verify camera ownership
@@ -195,10 +208,11 @@ const updateAnomaly = async (req, res) => {
         anomaly.criticality = criticality ?? anomaly.criticality;
         anomaly.modelName = modelName ?? anomaly.modelName;
         anomaly.status = status ?? anomaly.status;
+        anomaly.startTime = startTime ?? anomaly.startTime;
+        anomaly.endTime = endTime ?? anomaly.endTime;
+        anomaly.daysOfWeek = daysOfWeek ?? anomaly.daysOfWeek;
 
-        await anomaly.save();
-
-        // Fetch updated anomaly with cameras
+        await anomaly.save();        // Fetch updated anomaly with cameras
         const updatedAnomaly = await Anomaly.findByPk(anomalyId, {
             include: [{ model: Camera }]
         });
