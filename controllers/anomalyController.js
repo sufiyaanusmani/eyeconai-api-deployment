@@ -1,6 +1,7 @@
 const { Anomaly, Camera, NormalCondition } = require('../models');
 const DAYS_OF_WEEK = require('../constants/days');
 const { Op } = require('sequelize');
+const cronExpressionGenerator = require('cron-expression-generator');
 
 const addAnomaly = async (req, res) => {
     try {
@@ -76,6 +77,49 @@ const addAnomaly = async (req, res) => {
     }
 };
 
+// Helper function to generate cron expression with time range
+const generateCronExpression = (days, startTime, endTime) => {
+    if (!days || days.length === 0) {
+        // Default cron expression that runs every minute of every hour of every day
+        // Format: minute hour day month day-of-week
+        // "* * * * *" means "run every minute of every hour of every day of every month on every day of the week"
+        return "* * * * *";
+    }
+
+    // Parse start time into hours and minutes
+    const [startHour, startMinute] = startTime.split(':').map(Number);
+    
+    // Parse end time into hours and minutes
+    const [endHour, endMinute] = endTime.split(':').map(Number);
+    
+    // Map days to cron format (0-6 where 0 is Sunday)
+    const cronDays = days.map(day => {
+        switch(day) {
+            case 'SUN': return 0;
+            case 'MON': return 1;
+            case 'TUE': return 2;
+            case 'WED': return 3;
+            case 'THU': return 4;
+            case 'FRI': return 5;
+            case 'SAT': return 6;
+            default: return null;
+        }
+    }).filter(day => day !== null);
+
+    if (cronDays.length === 0) {
+        // Default cron expression that runs every minute of every hour of every day
+        return "* * * * *";
+    }    // Format the times with leading zeros for consistency
+    const formattedStartHour = startHour.toString().padStart(2, '0');
+    const formattedStartMinute = startMinute.toString().padStart(2, '0');
+    const formattedEndHour = endHour.toString().padStart(2, '0');
+    const formattedEndMinute = endMinute.toString().padStart(2, '0');
+
+    // Create a single cron expression that includes both times
+    // Format: minute:start-end hour:start-end * * days
+    return `${formattedStartMinute}-${formattedEndMinute} ${formattedStartHour}-${formattedEndHour} * * ${cronDays.join(',')}`;
+};
+
 const getAllAnomalies = async (req, res) => {
     const organizationId = req.user.organizationId;
 
@@ -96,7 +140,18 @@ const getAllAnomalies = async (req, res) => {
             ]
         });
 
-        res.status(200).json(anomalies);
+        // Add cron expression to each anomaly
+        const anomaliesWithCron = anomalies.map(anomaly => {
+            const plainAnomaly = anomaly.get({ plain: true });
+            plainAnomaly.cronExpression = generateCronExpression(
+                plainAnomaly.daysOfWeek,
+                plainAnomaly.startTime,
+                plainAnomaly.endTime
+            );
+            return plainAnomaly;
+        });
+
+        res.status(200).json(anomaliesWithCron);
     } catch (error) {
         console.error('[ERROR] Fetching anomalies:', error);
         res.status(500).json({ message: 'Failed to fetch anomalies', error: error.message });
