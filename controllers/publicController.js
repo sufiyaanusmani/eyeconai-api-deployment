@@ -1,4 +1,4 @@
-const { Anomaly, Camera, Organization } = require('../models');
+const { Anomaly, Camera, Organization, NormalCondition } = require('../models');
 
 /**
  * Get all anomalies across all organizations
@@ -53,10 +53,61 @@ const getAllAnomalies = async (req, res) => {
         res.status(500).json({ 
             message: 'Failed to fetch anomalies', 
             error: error.message 
+        });    }
+};
+
+/**
+ * Get comprehensive camera data for all organizations
+ * This endpoint is publicly accessible without authentication
+ */
+const getAllComprehensiveCameraData = async (req, res) => {
+    try {
+        // Fetch all cameras with both normal conditions and anomalies across all organizations
+        const cameras = await Camera.findAll({
+            attributes: ['cameraId', 'organizationId'],
+            include: [
+                {
+                    model: Organization,
+                    attributes: ['orgId', 'name']
+                },
+                {
+                    model: NormalCondition,
+                    attributes: ['conditionId', 'description']
+                },
+                {
+                    model: Anomaly,
+                    attributes: ['anomalyId', 'description', 'criticality'],
+                    through: { attributes: [] } // Exclude junction table attributes
+                }
+            ]
         });
+
+        // Format response
+        const formattedCameras = cameras.map(camera => ({
+            cameraId: camera.cameraId,
+            location: camera.location,
+            ipAddress: camera.ipAddress,
+            cameraType: camera.cameraType,
+            status: camera.status,
+            organization: {
+                id: camera.Organization.orgId,
+                name: camera.Organization.name
+            },
+            normalConditions: camera.NormalConditions,
+            anomalies: camera.Anomalies
+        }));
+
+        return res.status(200).json({
+            count: cameras.length,
+            cameras: formattedCameras
+        });
+    } catch (error) {
+        console.error('[ERROR] Error fetching comprehensive camera data:', error);
+        return res.status(500).json({ message: 'Error fetching comprehensive camera data' });
     }
 };
 
-module.exports = { 
-    getAllAnomalies 
+module.exports = {
+    getAllAnomalies,
+    getAllComprehensiveCameraData
 };
