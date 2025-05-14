@@ -132,6 +132,9 @@ const updateCamera = async (req, res) => {
             return res.status(403).json({ message: 'Unauthorized' });
         }
 
+        // Check if description has changed
+        const descriptionChanged = cameraDescription && cameraDescription !== camera.cameraDescription;
+
         // Update the camera details
         camera.location = location || camera.location;
         camera.ipAddress = ipAddress || camera.ipAddress;
@@ -140,8 +143,33 @@ const updateCamera = async (req, res) => {
 
         await camera.save({ transaction });
 
-        // If normal conditions are provided, update their descriptions
-        if (normalConditions && Array.isArray(normalConditions)) {
+        // If description has changed, extract new normal conditions using GroqService
+        if (descriptionChanged) {
+            try {
+                // First delete the existing conditions
+                await NormalCondition.destroy({
+                    where: { cameraId: camera.cameraId },
+                    transaction
+                });
+                
+                // Extract new normal conditions
+                const extractedConditions = await groqService.extractNormalConditions(camera.cameraDescription);
+                
+                // Create new normal conditions
+                for (const condition of extractedConditions) {
+                    await NormalCondition.create({
+                        ...condition,
+                        cameraId: camera.cameraId
+                    }, { transaction });
+                }
+            } catch (groqError) {
+                console.error('[ERROR] Failed to extract normal conditions:', groqError);
+                // Continue without normal conditions if extraction fails
+            }
+        } 
+        // If normal conditions are provided by the user, update them as well
+        // This maintains backward compatibility with clients that provide conditions
+        else if (normalConditions && Array.isArray(normalConditions)) {
             for (const condition of normalConditions) {
                 if (condition.conditionId) {
                     await NormalCondition.update(
